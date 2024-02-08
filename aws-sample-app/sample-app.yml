@@ -27,8 +27,8 @@ spec:
                 - amd64
                 - arm64
       containers:
-      - name: openjdk
-        image: openjdk
+      - name: apache
+        image: httpd
         ports:
         - name: http
           containerPort: 80
