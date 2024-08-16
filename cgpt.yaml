@@ -1,0 +1,79 @@
+---
+# Source: cgpt/templates/environment.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cgpt-releaseskylark-env
+  namespace: releaseskylark
+data:
+  CT_BASE_URL: releaseskylark_ct:2020/
+  DB_CON_STR: mongodb+srv://releaseskylark_user:4bADelfgwNNtxHRm@releaseskylark-qa.znilejx.mongodb.net/releaseskylark_epms?ssl=true&retryWrites=true&w=majority
+  EPMS_BASE_URL: releaseskylark_epms:3119/epms/
+  NODE_OPTIONS: --openssl-legacy-provider
+  OPENAI_API_KEY: sk-ADBsQpgi2jh3tHSAmgURT3BlbkFJc7WdfufkCYOvsfDn
+  PROTOCOL: https
+  REDIS_CON_STR: redis://nonprod-redis.g7qsgv.ng.0001.aps1.cache.amazonaws.com:6379/1
+---
+# Source: cgpt/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: cgpt
+  namespace: releaseskylark
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: 3000
+  selector:
+    app: cgpt
+---
+# Source: cgpt/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cgpt-releaseskylark
+  namespace: releaseskylark
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cgpt
+  template:
+    metadata:
+      labels:
+        app: cgpt
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: cgpt
+          image: "kpisoft/chatgpt:skylark-7.0-14082024040321-ae4ccd80dda786cb3ab29d4c557e57904b1b126c-release"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+          envFrom:
+            - configMapRef:
+                name: cgpt-releaseskylark-env
+          env:
+            - name: CT_BASE_URL
+              value: releaseskylark_ct:2020/
+            - name: DB_CON_STR
+              value: mongodb+srv://releaseskylark_user:4bADelfgwNNtxHRm@releaseskylark-qa.znilejx.mongodb.net/releaseskylark_epms?ssl=true&retryWrites=true&w=majority
+            - name: EPMS_BASE_URL
+              value: releaseskylark_epms:3119/epms/
+            - name: NODE_OPTIONS
+              value: --openssl-legacy-provider
+            - name: OPENAI_API_KEY
+              value: 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
+            - name: PROTOCOL
+              value: https
+            - name: REDIS_CON_STR
+              value: redis://nonprod-redis.g7qsgv.ng.0001.aps1.cache.amazonaws.com:6379/1
+          resources:
+            requests:
+              memory: 512Mi
+              cpu: 100m
+            limits:
+              memory: 1024Mi
+              cpu: 200m
