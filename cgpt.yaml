@@ -10,7 +10,7 @@ data:
   DB_CON_STR: mongodb+srv://releaseskylark_user:4bADelfgwNNtxHRm@releaseskylark-qa.znilejx.mongodb.net/releaseskylark_epms?ssl=true&retryWrites=true&w=majority
   EPMS_BASE_URL: releaseskylark_epms:3119/epms/
   NODE_OPTIONS: --openssl-legacy-provider
-  OPENAI_API_KEY: sk-ADBsQpgi2jh3tHSAmgURT3BlbkFJc7WdfufkCYOvsfDn
+  OPENAI_API_KEY: abcdefg
   PROTOCOL: https
   REDIS_CON_STR: redis://nonprod-redis.g7qsgv.ng.0001.aps1.cache.amazonaws.com:6379/1
 ---
