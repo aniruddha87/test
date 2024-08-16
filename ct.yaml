@@ -1,0 +1,88 @@
+---
+# Source: ct/templates/environment.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ct-releaseskylark-env
+  namespace: releaseskylark
+data:
+  CHATGPT_BASE_URL: releaseskylark_chatgpt:3000/
+  DB_CON_STR: mongodb+srv://releaseskylark_user:4bADelfgwNNtxHRm@releaseskylark-qa.znilejx.mongodb.net/releaseskylark_epms?ssl=true&retryWrites=true&w=majority
+  ELASTIC_APM_APPLICATION_PACKAGES: com.kpisoft
+  ELASTIC_APM_ENVIRONMENT: '{{index .Service.Labels "com.docker.stack.namespace"}}'
+  ELASTIC_APM_LOG_LEVEL: WARN
+  ELASTIC_APM_SECRET_TOKEN: Mm2vkuYzpUpQEQAJiU
+  ELASTIC_APM_SERVER_URLS: https://63077c7ae3d14de69d1784e1192c4dbb.apm.ap-southeast-1.aws.cloud.es.io:443
+  ELASTIC_APM_SERVICE_NAME: ct
+  ELASTIC_APM_SERVICE_NODE_NAME: '{{.Task.Name}}'
+  ENABLE_APM: "true"
+  EPMS_BASE_URL: releaseskylark_epms:3119/epms/
+  NODE_OPTIONS: --require @opentelemetry/auto-instrumentations-node/register
+  OTEL_EXPORTER_OTLP_ENDPOINT: https://63077c7ae3d14de69d1784e1192c4dbb.apm.ap-southeast-1.aws.cloud.es.io:443
+  OTEL_EXPORTER_OTLP_HEADERS: Authorization=Bearer Mm2vkuYzpUpQEQAJiU
+  OTEL_RESOURCE_ATTRIBUTES: service.name=ct,deployment.environment=releaseskylark
+  PROTOCOL: https
+---
+# Source: ct/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: ct
+  namespace: releaseskylark
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: 2020
+  selector:
+    app: ct
+---
+# Source: ct/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ct-releaseskylark
+  namespace: releaseskylark
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ct
+  template:
+    metadata:
+      labels:
+        app: ct
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: ct
+          image: "kpisoft/maprecruit:skylark-7.0-16082024100409-4768cb5c630b7a18e026a2577426b6b7315d6dc3-release-null"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 2020
+          envFrom:
+            - configMapRef:
+                name: ct-releaseskylark-env
+          env:
+            - name: CT_BASE_URL
+              value:
+            - name: DB_CON_STR
+              value: mongodb+srv://releaseskylark_user:4bADelfgwNNtxHRm@releaseskylark-qa.znilejx.mongodb.net/releaseskylark_epms?ssl=true&retryWrites=true&w=majority
+            - name: EPMS_BASE_URL
+              value: releaseskylark_epms:3119/epms/
+            - name: NODE_OPTIONS
+              value: --require @opentelemetry/auto-instrumentations-node/register
+            - name: OPENAI_API_KEY
+              value:
+            - name: PROTOCOL
+              value: https
+            - name: REDIS_CON_STR
+              value:
+          resources:
+            requests:
+              memory: 128Mi
+              cpu: 100m
+            limits:
+              memory: 256Mi
+              cpu: 200m
